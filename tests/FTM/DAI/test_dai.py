@@ -7,6 +7,7 @@ import brownie
 def test_normal_activity(
     ftm_dai,
     scrDai,
+    crDai,
     chain,
     whale,
     rando,
@@ -27,7 +28,7 @@ def test_normal_activity(
     deposit_limit = 10_000
     vault.addStrategy(strategy, deposit_limit, 0, 2 ** 256 - 1, 1000, {"from": gov})
 
-    whale_deposit = 1_000_000 * 1e18
+    whale_deposit = 100_000 * 1e18
     vault.deposit(whale_deposit, {"from": whale})
     chain.sleep(10)
     chain.mine(1)
@@ -61,6 +62,7 @@ def test_normal_activity(
         chain.sleep(waitBlock)
         # print(f'\n----harvest----')
         scrDai.mint(0,{"from": whale})
+        crDai.mint(0,{"from": whale})
         strategy.harvest({"from": strategist})
 
         # genericStateOfStrat(strategy, currency, vault)
@@ -79,7 +81,7 @@ def test_normal_activity(
         time = (i + 1) * waitBlock
         assert time != 0
         apr = (totalReturns / startingBalance) * (blocks_per_year / time)
-        assert apr > 0 and apr < 1
+        assert apr > 0 and apr < 10
         # print(apr)
         print(f"implied apr: {apr:.8%}")
 

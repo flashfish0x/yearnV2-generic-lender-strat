@@ -16,6 +16,10 @@ def scrDai(interface):
     yield interface.CErc20I("0x8D9AED9882b4953a0c9fa920168fa1FDfA0eBE75")
 
 @pytest.fixture
+def crDai(interface):
+    yield interface.CErc20I("0x04c762a5dF2Fa02FE868F25359E0C259fB811CfE")
+
+@pytest.fixture
 def gov(accounts):
     yield accounts[3]
 
@@ -68,14 +72,17 @@ def strategy(
     keeper,
     vault,
     scrDai,
+    crDai,
     gov,
     Strategy,
     GenericScream,
+    GenericIronBank
 ):
     strategy = strategist.deploy(Strategy, vault)
     strategy.setKeeper(keeper)
 
     screamPlugin = strategist.deploy(GenericScream, strategy, "Scream", scrDai)
+    ibPlugin = strategist.deploy(GenericIronBank, strategy, "IB", crDai)
     assert screamPlugin.underlyingBalanceStored() == 0
     scapr = screamPlugin.compBlockShareInWant(0, False) * 3154 * 10**4
     print(scapr/1e18)
@@ -85,5 +92,6 @@ def strategy(
     print(scapr2/1e18)
     assert scapr2 < scapr
     strategy.addLender(screamPlugin, {"from": gov})
-    assert strategy.numLenders() == 1
+    strategy.addLender(ibPlugin, {"from": gov})
+    assert strategy.numLenders() == 2
     yield strategy

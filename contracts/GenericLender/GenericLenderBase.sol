@@ -79,7 +79,7 @@ abstract contract GenericLenderBase is IGenericLender {
         dust = _dust;
     }
 
-    function sweep(address _token) external virtual override management {
+    function sweep(address _token) external virtual override govOnly {
         address[] memory _protectedTokens = protectedTokens();
         for (uint256 i; i < _protectedTokens.length; i++) require(_token != _protectedTokens[i], "!protected");
 
@@ -92,6 +92,14 @@ abstract contract GenericLenderBase is IGenericLender {
     modifier management() {
         require(
             msg.sender == address(strategy) || msg.sender == vault.governance() || msg.sender == IBaseStrategy(strategy).strategist(),
+            "!management"
+        );
+        _;
+    }
+
+    modifier govOnly() {
+        require(
+            msg.sender == vault.governance(),
             "!management"
         );
         _;
